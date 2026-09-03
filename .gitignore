@@ -1,0 +1,23 @@
+# Dependencies and package output
+**/node_modules/
+**/dist/
+**/coverage/
+**/.cache/
+**/*.tsbuildinfo
+
+# Staged package assets; the canonical asset is /library.sqlite.
+**/data/library.sqlite
+
+# Local configuration and logs
+.env
+.env.*
+!.env.example
+*.log
+**/_logs/
+_update-notifier-last-checked
+
+# Operating system and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

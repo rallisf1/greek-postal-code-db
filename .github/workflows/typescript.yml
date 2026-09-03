@@ -1,0 +1,75 @@
+name: TypeScript client
+
+on:
+  pull_request:
+    paths:
+      - 'library.sqlite'
+      - 'typescript/**'
+      - 'models/**'
+      - '.github/workflows/typescript.yml'
+      - 'scripts/verify-typescript-version-bump.mjs'
+  push:
+    branches: [main]
+    paths:
+      - 'library.sqlite'
+      - 'typescript/**'
+      - 'models/**'
+      - '.github/workflows/typescript.yml'
+      - 'scripts/verify-typescript-version-bump.mjs'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test Node and Bun
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+      - run: bun install --frozen-lockfile
+        working-directory: typescript
+      - run: bun run test
+        working-directory: typescript
+      - name: Require a version bump for publishable changes
+        if: github.event_name == 'pull_request'
+        run: node scripts/verify-typescript-version-bump.mjs "origin/${{ github.base_ref }}"
+
+  publish:
+    name: Publish npm package
+    needs: test
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: npm
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+      - run: bun install --frozen-lockfile
+        working-directory: typescript
+      - run: bun run test
+        working-directory: typescript
+      - name: Publish when this version is new
+        working-directory: typescript
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          package="$(node -p "require('./package.json').name")"
+          if npm view "$package@$version" version >/dev/null 2>&1; then
+            echo "$package@$version is already published."
+            exit 0
+          fi
+          npm publish
