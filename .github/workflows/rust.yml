@@ -1,0 +1,86 @@
+name: Rust crate
+
+on:
+  pull_request:
+    paths: [library.sqlite, rust/**, Cargo.toml, .github/workflows/rust.yml]
+  push:
+    branches: [main]
+    paths: [library.sqlite, rust/**, Cargo.toml, .github/workflows/rust.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test Rust crate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo fmt --check
+      - run: cmp library.sqlite rust/data/library.sqlite
+      - run: cargo test -p greek-postal-code-db
+      - name: Require a version bump for publishable changes
+        if: github.event_name == 'pull_request'
+        env:
+          BASE: origin/${{ github.base_ref }}
+        run: |
+          if ! git diff --name-only "$BASE...HEAD" | grep -qE '^(library\.sqlite|rust/)'; then exit 0; fi
+          base="$(git show "$BASE:rust/Cargo.toml" | sed -n 's/^version = "\(.*\)"/\1/p')"
+          current="$(sed -n 's/^version = "\(.*\)"/\1/p' rust/Cargo.toml)"
+          python3 - "$base" "$current" <<'PY'
+          import re, sys
+          def version(value):
+              match = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?", value)
+              if not match: raise SystemExit(f"invalid SemVer version: {value}")
+              core = tuple(map(int, match.group(1, 2, 3)))
+              return core, match.group(4) is None, match.group(4) or ""
+          if version(sys.argv[2]) <= version(sys.argv[1]):
+              raise SystemExit(f"rust/Cargo.toml version must increase: {sys.argv[1]} -> {sys.argv[2]}")
+          PY
+
+  release-eligibility:
+    name: Check release eligibility
+    needs: test
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    outputs:
+      publish: ${{ steps.version.outputs.publish }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - id: version
+        env:
+          BEFORE: ${{ github.event.before }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT" = workflow_dispatch ]; then echo "publish=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          current="$(sed -n 's/^version = "\(.*\)"/\1/p' rust/Cargo.toml)"
+          previous="$(git show "$BEFORE:rust/Cargo.toml" 2>/dev/null | sed -n 's/^version = "\(.*\)"/\1/p')"
+          if [ "$current" = "$previous" ]; then echo "publish=false" >> "$GITHUB_OUTPUT"; else echo "publish=true" >> "$GITHUB_OUTPUT"; fi
+
+  publish:
+    name: Publish to crates.io
+    needs: [test, release-eligibility]
+    if: needs.release-eligibility.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    environment: crates.io
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cmp library.sqlite rust/data/library.sqlite
+      - name: Publish only when the version is new
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          package="$(sed -n 's/^name = "\(.*\)"/\1/p' rust/Cargo.toml | head -1)"
+          version="$(sed -n 's/^version = "\(.*\)"/\1/p' rust/Cargo.toml)"
+          if curl --fail --silent "https://crates.io/api/v1/crates/$package/$version" >/dev/null; then
+            echo "$package@$version is already published."
+            exit 0
+          fi
+          cargo publish -p "$package"

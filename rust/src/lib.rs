@@ -599,10 +599,27 @@ mod tests {
     fn contract() -> Result<()> {
         let client = PostalCodeClient::new()?;
         assert_eq!(client.list_regions(ListOptions::default())?.len(), 13);
-        assert_eq!(client.search_regions("Αττικης", ListOptions::default())?[0]["name"], "Αττικής");
-        let postcode = client.get_postcode("10431", PostcodeOptions { include_hierarchy: true, include_streets: true })?.unwrap();
+        assert_eq!(
+            client.search_regions("Αττικης", ListOptions::default())?[0]["name"],
+            "Αττικής"
+        );
+        let postcode = client
+            .get_postcode(
+                "10431",
+                PostcodeOptions {
+                    include_hierarchy: true,
+                    include_streets: true,
+                },
+            )?
+            .unwrap();
         assert_eq!(postcode["hierarchy"]["municipality"]["name"], "Αθηναίων");
-        assert!(postcode["streets"].as_array().unwrap().iter().any(|street| street["name"] == "Αγίου Κωνσταντίνου"));
+        assert!(
+            postcode["streets"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|street| street["name"] == "Αγίου Κωνσταντίνου")
+        );
         Ok(())
     }
 }
