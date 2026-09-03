@@ -14,6 +14,7 @@ Language clients for the Greek Postal Code DB. Each package embeds the same read
 
 - [`typescript`](./typescript): Node.js and Bun client, published as `@rallisf1/greek-postal-code-db`.
 - [`php`](./php): PHP 8.1+ Composer client, published from this repository root as `rallisf1/greek-postal-code-db`.
+- [`go`](./go): Go client, imported as `github.com/rallisf1/greek-postal-code-db/go`.
 - [`models`](./models): private TypeScript types used internally; it is not published.
 - [`demo`](./demo): internal Cloudflare Pages/D1 demo application; it is not published.
 

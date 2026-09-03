@@ -13,6 +13,7 @@ demo/wrangler.toml
 
 # Staged package assets; the canonical asset is /library.sqlite.
 **/data/library.sqlite
+!go/data/library.sqlite
 
 # Local configuration and logs
 .env
