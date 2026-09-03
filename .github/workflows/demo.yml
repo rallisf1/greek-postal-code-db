@@ -1,0 +1,116 @@
+name: Demo
+
+on:
+  pull_request:
+    paths:
+      - 'library.sqlite'
+      - 'demo/**'
+      - '.github/workflows/demo.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'library.sqlite'
+      - 'demo/**'
+      - '.github/workflows/demo.yml'
+  workflow_dispatch:
+    inputs:
+      refresh_data:
+        description: Refresh D1 from library.sqlite before deployment
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test demo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+      - run: bun install --frozen-lockfile
+        working-directory: demo
+      - run: bun run test
+        working-directory: demo
+      - run: bun run validate:snapshot
+        working-directory: demo
+      - name: Validate snapshot with local D1
+        run: |
+          bun run render:wrangler
+          bunx wrangler d1 execute demo-local --local --file .generated/library.sql --config .generated/wrangler.toml --yes
+        working-directory: demo
+        env:
+          CLOUDFLARE_PAGES_PROJECT: demo-local
+          CLOUDFLARE_D1_DATABASE_NAME: demo-local
+          CLOUDFLARE_D1_DATABASE_ID: 00000000-0000-0000-0000-000000000000
+
+  changes:
+    name: Detect data refresh
+    needs: test
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    outputs:
+      refresh_data: ${{ steps.detect.outputs.refresh_data }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - id: detect
+        env:
+          BEFORE: ${{ github.event.before }}
+          DISPATCH_REFRESH: ${{ inputs.refresh_data }}
+        run: |
+          if [ "$DISPATCH_REFRESH" = "true" ]; then
+            echo "refresh_data=true" >> "$GITHUB_OUTPUT"
+          elif git diff --quiet "$BEFORE" HEAD -- library.sqlite; then
+            echo "refresh_data=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "refresh_data=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  deploy:
+    name: Deploy Pages demo
+    needs: [test, changes]
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment: cloudflare-demo
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+      - run: bun install --frozen-lockfile
+        working-directory: demo
+      - name: Render Wrangler configuration
+        run: bun run render:wrangler
+        working-directory: demo
+        env:
+          CLOUDFLARE_PAGES_PROJECT: ${{ vars.CLOUDFLARE_PAGES_PROJECT }}
+          CLOUDFLARE_D1_DATABASE_NAME: ${{ vars.CLOUDFLARE_D1_DATABASE_NAME }}
+          CLOUDFLARE_D1_DATABASE_ID: ${{ vars.CLOUDFLARE_D1_DATABASE_ID }}
+      - name: Refresh D1 snapshot
+        if: needs.changes.outputs.refresh_data == 'true'
+        run: |
+          bun run snapshot
+          bunx wrangler d1 execute "$CLOUDFLARE_D1_DATABASE_NAME" --remote --file .generated/library.sql --config .generated/wrangler.toml --yes
+        working-directory: demo
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_D1_DATABASE_NAME: ${{ vars.CLOUDFLARE_D1_DATABASE_NAME }}
+      - name: Deploy Pages
+        run: bunx wrangler pages deploy public --config .generated/wrangler.toml --branch main --commit-hash "$GITHUB_SHA"
+        working-directory: demo
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}

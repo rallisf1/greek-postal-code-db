@@ -3,6 +3,8 @@
 **/dist/
 **/coverage/
 **/.cache/
+**/.wrangler/
+**/.generated/
 **/*.tsbuildinfo
 
 # Staged package assets; the canonical asset is /library.sqlite.

@@ -1,0 +1,15 @@
+{
+  "name": "greek-postal-code-db-demo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/**/*.test.mjs",
+    "snapshot": "bun scripts/export-d1-snapshot.mjs",
+    "validate:snapshot": "bun scripts/export-d1-snapshot.mjs --validate",
+    "render:wrangler": "bun scripts/render-wrangler-config.mjs",
+    "dev": "wrangler pages dev public --config .generated/wrangler.toml"
+  },
+  "devDependencies": {
+    "wrangler": "^4.42.2"
+  }
+}

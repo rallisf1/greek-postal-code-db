@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="el">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Greek Postal Code DB demo</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <header><h1>Greek Postal Code DB</h1><p>Read-only postcode, hierarchy, street, and address-validation demo.</p></header>
+    <main>
+      <section>
+        <h2>Postal code lookup</h2>
+        <form id="postcode-form"><label>Postcode <input id="postcode" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" placeholder="10431" required></label><button>Search</button></form>
+        <p id="postcode-error" class="error" hidden></p>
+        <div id="postcode-result" hidden>
+          <dl id="hierarchy"></dl>
+          <h3>Streets</h3><div class="table-wrap"><table><thead><tr><th>Name</th><th>Odd range</th><th>Even range</th></tr></thead><tbody id="streets"></tbody></table></div>
+        </div>
+      </section>
+      <section>
+        <h2>Administrative hierarchy</h2>
+        <label>Region <select id="region"><option value="">Select a region</option></select></label>
+        <label>Regional unit <select id="regional-unit" disabled><option value="">Select a regional unit</option></select></label>
+      </section>
+      <section>
+        <h2>Municipality search</h2>
+        <label>Municipality <input id="municipality-search" autocomplete="off" placeholder="Start typing a municipality name"></label>
+        <ul id="municipality-results" class="suggestions" hidden></ul>
+      </section>
+      <section>
+        <h2>Validate an address</h2>
+        <form id="address-form" novalidate>
+          <div class="grid">
+            <label data-field="postcode">Postcode <input name="postcode" inputmode="numeric" pattern="[0-9]{5}" required></label>
+            <label data-field="street">Street <input name="street"></label>
+            <label data-field="houseNumber">House number <input name="houseNumber" inputmode="numeric"></label>
+            <label data-field="municipality">Municipality <input name="municipality"></label>
+            <label data-field="municipalUnit">Municipal unit <input name="municipalUnit"></label>
+            <label data-field="community">Community <input name="community"></label>
+            <label data-field="regionalUnit">Regional unit <input name="regionalUnit"></label>
+            <label data-field="region">Region <input name="region"></label>
+          </div>
+          <button>Validate</button>
+        </form>
+        <p id="validation-summary" aria-live="polite"></p>
+      </section>
+    </main>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

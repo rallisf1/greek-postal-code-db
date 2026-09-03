@@ -1,0 +1,10 @@
+:root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+body { margin: 0 auto; max-width: 980px; padding: 1.5rem; line-height: 1.45; }
+header { margin-bottom: 2rem; } section { border: 1px solid #8886; border-radius: .5rem; padding: 1rem; margin: 1rem 0; }
+form, .grid { display: grid; gap: .8rem; } .grid { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+label { display: grid; gap: .25rem; font-weight: 600; } input, select, button { font: inherit; padding: .45rem; }
+button { width: fit-content; cursor: pointer; } .error { color: #b42318; } .invalid input { border: 2px solid #b42318; } .valid input { border: 2px solid #188038; }
+.not_evaluated input { border: 2px solid #b7791f; } .table-wrap { max-height: 24rem; overflow: auto; } table { width: 100%; border-collapse: collapse; }
+th, td { padding: .45rem; text-align: left; border-bottom: 1px solid #8886; } .suggestions { padding: 0; margin: .25rem 0; list-style: none; border: 1px solid #8886; }
+.suggestions button { width: 100%; border: 0; text-align: left; background: transparent; } dl { display: grid; grid-template-columns: max-content 1fr; gap: .3rem .8rem; }
+dt { font-weight: 700; } dd { margin: 0; }
