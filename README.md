@@ -19,7 +19,7 @@ Language clients for the Greek Postal Code DB. Each package embeds the same read
 
 ### Packages
 
-These packages have been almost entirely AI generated. Bug fixes through PRs are welcome.
+These packages have been almost entirely AI generated. Bug fixes through PRs are welcome. For new features open an issue first, as it has to be implemented in all clients.
 
 ### Dataset
 
