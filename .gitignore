@@ -1,8 +1,11 @@
 # Dependencies and package output
 **/node_modules/
+**/vendor/
 **/dist/
 **/coverage/
 **/.cache/
+**/.phpunit.result.cache
+**/composer.lock
 **/.wrangler/
 **/.generated/
 demo/wrangler.toml
