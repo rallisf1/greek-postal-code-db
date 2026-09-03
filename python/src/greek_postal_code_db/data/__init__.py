@@ -1,0 +1,1 @@
+"""Bundled SQLite database asset."""

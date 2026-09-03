@@ -10,3 +10,4 @@
 /php/README.md export-ignore
 /php/tests export-ignore
 /phpunit.xml.dist export-ignore
+/python export-ignore

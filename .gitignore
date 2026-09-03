@@ -2,6 +2,9 @@
 **/node_modules/
 **/vendor/
 **/dist/
+**/build/
+**/__pycache__/
+**/*.egg-info/
 **/coverage/
 **/.cache/
 **/.phpunit.result.cache
@@ -14,6 +17,7 @@ demo/wrangler.toml
 # Staged package assets; the canonical asset is /library.sqlite.
 **/data/library.sqlite
 !go/data/library.sqlite
+!python/src/greek_postal_code_db/data/library.sqlite
 
 # Local configuration and logs
 .env
