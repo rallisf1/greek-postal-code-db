@@ -1,5 +1,5 @@
 {
-  "name": "@greek-postal-code-db/typescript",
+  "name": "@rallisf1/greek-postal-code-db",
   "version": "0.1.0",
   "description": "Read-only Node.js and Bun client for Greek postal-code data",
   "license": "MIT",
@@ -16,6 +16,9 @@
     "LICENSE",
     "README.md"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": ">=22.5.0"
   },

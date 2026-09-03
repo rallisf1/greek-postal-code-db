@@ -4,7 +4,7 @@ Language clients for the Greek Postal Code DB. Each package embeds the same read
 
 ## Packages
 
-- [`typescript`](./typescript): Node.js and Bun client, published as `@greek-postal-code-db/typescript`.
+- [`typescript`](./typescript): Node.js and Bun client, published as `@rallisf1/greek-postal-code-db`.
 - [`models`](./models): private TypeScript types used internally; it is not published.
 
 ## Updating the data

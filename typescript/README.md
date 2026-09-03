@@ -1,9 +1,9 @@
-# @greek-postal-code-db/typescript
+# @rallisf1/greek-postal-code-db
 
 Read-only Greek postal-code data for Node.js 22.5+ and Bun. The published package includes its SQLite database.
 
 ```ts
-import { createPostalCodeClient } from '@greek-postal-code-db/typescript';
+import { createPostalCodeClient } from '@rallisf1/greek-postal-code-db';
 
 const client = createPostalCodeClient();
 const location = client.getPostcode('10431', { include: { hierarchy: true, streets: true } });
