@@ -2,11 +2,11 @@
 
 Offline, read-only Greek postal-code data backed by an embedded SQLite database. The crate uses bundled SQLite, so no system SQLite development package is required.
 
-This crate lives in the `rust/` subdirectory of a monorepo. Until it is published on crates.io, depend on it from Git:
+This crate lives in the `rust/` subdirectory of a monorepo.
 
 ```toml
 [dependencies]
-greek-postal-code-db = { git = "https://github.com/rallisf1/greek-postal-code-db.git" }
+greek-postal-code-db
 ```
 
 ```rust
