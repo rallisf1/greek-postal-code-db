@@ -1,0 +1,20 @@
+[package]
+name = "greek-postal-code-db"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+description = "Read-only Greek postal-code data backed by an embedded SQLite database"
+license = "MIT"
+repository = "https://github.com/rallisf1/greek-postal-code-db"
+readme = "README.md"
+keywords = ["greece", "postcode", "postal-code", "sqlite"]
+categories = ["database"]
+include = ["Cargo.toml", "README.md", "LICENSE", "src/**", "data/library.sqlite"]
+
+[dependencies]
+rusqlite = { version = "0.39", features = ["bundled"] }
+serde = "1"
+serde_json = "1"
+tempfile = "3"
+thiserror = "2"
+unicode-normalization = "0.1"

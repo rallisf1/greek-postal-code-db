@@ -11,3 +11,4 @@
 /php/tests export-ignore
 /phpunit.xml.dist export-ignore
 /python export-ignore
+/rust export-ignore
