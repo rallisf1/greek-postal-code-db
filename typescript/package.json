@@ -1,8 +1,13 @@
 {
   "name": "@rallisf1/greek-postal-code-db",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Read-only Node.js and Bun client for Greek postal-code data",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rallisf1/greek-postal-code-db.git",
+    "directory": "typescript"
+  },
   "type": "module",
   "exports": {
     ".": {

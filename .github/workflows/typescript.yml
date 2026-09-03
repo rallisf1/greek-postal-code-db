@@ -42,17 +42,45 @@ jobs:
         if: github.event_name == 'pull_request'
         run: node scripts/verify-typescript-version-bump.mjs "origin/${{ github.base_ref }}"
 
-  publish:
-    name: Publish npm package
+  release-eligibility:
+    name: Check release eligibility
     needs: test
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
+    outputs:
+      publish: ${{ steps.version.outputs.publish }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - id: version
+        env:
+          BEFORE: ${{ github.event.before }}
+        run: |
+          current="$(node -p "require('./typescript/package.json').version")"
+          previous="$( { git show "$BEFORE:typescript/package.json" 2>/dev/null || true; } | node -e 'let data = ""; process.stdin.setEncoding("utf8"); process.stdin.on("data", (chunk) => data += chunk); process.stdin.on("end", () => { if (data) process.stdout.write(JSON.parse(data).version); });' )"
+          if [ "$current" = "$previous" ]; then
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "Package version is unchanged ($current); skipping publish."
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+            echo "Package version changed: ${previous:-new package} -> $current."
+          fi
+
+  publish:
+    name: Publish npm package
+    needs: [test, release-eligibility]
+    if: needs.release-eligibility.outputs.publish == 'true'
+    runs-on: ubuntu-latest
     environment: npm
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           registry-url: https://registry.npmjs.org
       - uses: oven-sh/setup-bun@v2
         with:
@@ -63,8 +91,6 @@ jobs:
         working-directory: typescript
       - name: Publish when this version is new
         working-directory: typescript
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           version="$(node -p "require('./package.json').version")"
           package="$(node -p "require('./package.json').name")"
