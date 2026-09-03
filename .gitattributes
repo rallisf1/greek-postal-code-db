@@ -1,0 +1,12 @@
+/.github export-ignore
+/.editorconfig export-ignore
+/.gitignore export-ignore
+/.gitattributes export-ignore
+/demo export-ignore
+/models export-ignore
+/scripts export-ignore
+/typescript export-ignore
+/php/LICENSE export-ignore
+/php/README.md export-ignore
+/php/tests export-ignore
+/phpunit.xml.dist export-ignore

@@ -15,24 +15,20 @@
   },
   "autoload": {
     "psr-4": {
-      "Rallisf1\\GreekPostalCodeDb\\": "src/"
+      "Rallisf1\\GreekPostalCodeDb\\": "php/src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "Rallisf1\\GreekPostalCodeDb\\Tests\\": "tests/"
+      "Rallisf1\\GreekPostalCodeDb\\Tests\\": "php/tests/"
     }
   },
   "scripts": {
-    "build": "php scripts/build.php",
-    "test": [
-      "@build",
-      "phpunit"
-    ]
+    "test": "phpunit --configuration phpunit.xml.dist"
   },
   "support": {
     "issues": "https://github.com/rallisf1/greek-postal-code-db/issues",
-    "source": "https://github.com/rallisf1/greek-postal-code-db/tree/main/php"
+    "source": "https://github.com/rallisf1/greek-postal-code-db"
   },
   "extra": {
     "branch-alias": {

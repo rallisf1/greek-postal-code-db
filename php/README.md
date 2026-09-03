@@ -25,13 +25,10 @@ List/search options use camelCase: `regionId`, `regionalUnitId`, `municipalityId
 
 `validateAddress` accepts the same keys as the TypeScript client (`postcode`, `street`, `houseNumber`, `municipality`, `municipalUnit`, `community`, `regionalUnit`, and `region`) and reports each supplied component independently with `valid`, `invalid`, or `not_evaluated` status.
 
-## Development and publishing
+## Development
 
-The canonical database is `../library.sqlite`. Before running tests or creating a Composer archive, stage it into this package:
+The Composer package manifest and canonical database are at the monorepo root. Run commands from that directory:
 
 ```bash
-composer build
 composer test
 ```
-
-`data/library.sqlite` is generated and intentionally untracked. Release automation must run `composer build` before creating the package archive so the database is included.

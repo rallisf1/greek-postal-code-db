@@ -23,9 +23,9 @@ final class PostalCodeClient
 
     public function __construct()
     {
-        $this->databasePath = dirname(__DIR__) . '/data/library.sqlite';
+        $this->databasePath = dirname(__DIR__, 2) . '/library.sqlite';
         if (!is_file($this->databasePath)) {
-            throw new RuntimeException('The bundled library.sqlite asset is missing. Run composer build before packaging this library.');
+            throw new RuntimeException('The bundled library.sqlite asset is missing.');
         }
 
         $encodedPath = str_replace('%2F', '/', rawurlencode($this->databasePath));
