@@ -7,7 +7,7 @@
     "snapshot": "bun scripts/export-d1-snapshot.mjs",
     "validate:snapshot": "bun scripts/export-d1-snapshot.mjs --validate",
     "render:wrangler": "bun scripts/render-wrangler-config.mjs",
-    "dev": "wrangler pages dev public --config .generated/wrangler.toml"
+    "dev": "wrangler pages dev public"
   },
   "devDependencies": {
     "wrangler": "^4.42.2"

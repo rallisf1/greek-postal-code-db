@@ -5,6 +5,7 @@
 **/.cache/
 **/.wrangler/
 **/.generated/
+demo/wrangler.toml
 **/*.tsbuildinfo
 
 # Staged package assets; the canonical asset is /library.sqlite.

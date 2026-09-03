@@ -44,7 +44,7 @@ jobs:
       - name: Validate snapshot with local D1
         run: |
           bun run render:wrangler
-          bunx wrangler d1 execute demo-local --local --file .generated/library.sql --config .generated/wrangler.toml --yes
+          bunx wrangler d1 execute demo-local --local --file .generated/library.sql --yes
         working-directory: demo
         env:
           CLOUDFLARE_PAGES_PROJECT: demo-local
@@ -102,14 +102,14 @@ jobs:
         if: needs.changes.outputs.refresh_data == 'true'
         run: |
           bun run snapshot
-          bunx wrangler d1 execute "$CLOUDFLARE_D1_DATABASE_NAME" --remote --file .generated/library.sql --config .generated/wrangler.toml --yes
+          bunx wrangler d1 execute "$CLOUDFLARE_D1_DATABASE_NAME" --remote --file .generated/library.sql --yes
         working-directory: demo
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_D1_DATABASE_NAME: ${{ vars.CLOUDFLARE_D1_DATABASE_NAME }}
       - name: Deploy Pages
-        run: bunx wrangler pages deploy public --config .generated/wrangler.toml --branch main --commit-hash "$GITHUB_SHA"
+        run: bunx wrangler pages deploy public --branch main --commit-hash "$GITHUB_SHA"
         working-directory: demo
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
