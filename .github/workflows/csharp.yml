@@ -1,0 +1,98 @@
+name: C# NuGet package
+
+on:
+  pull_request:
+    paths: [library.sqlite, csharp/**, .github/workflows/csharp.yml]
+  push:
+    branches: [main]
+    paths: [library.sqlite, csharp/**, .github/workflows/csharp.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test C# client
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet run --project csharp/GreekPostalCodeDb.Tests/GreekPostalCodeDb.Tests.csproj
+      - name: Require a version bump for publishable changes
+        if: github.event_name == 'pull_request'
+        env:
+          BASE: origin/${{ github.base_ref }}
+        run: |
+          if git diff --quiet "$BASE...HEAD" -- library.sqlite csharp/; then exit 0; fi
+          base="$(git show "$BASE:csharp/GreekPostalCodeDb/GreekPostalCodeDb.csproj" | sed -n 's|.*<Version>\(.*\)</Version>.*|\1|p')"
+          current="$(sed -n 's|.*<Version>\(.*\)</Version>.*|\1|p' csharp/GreekPostalCodeDb/GreekPostalCodeDb.csproj)"
+          python3 - "$base" "$current" <<'PY'
+          import re, sys
+          def version(value):
+              match = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?", value)
+              if not match:
+                  raise SystemExit(f"invalid SemVer version: {value}")
+              core = tuple(map(int, match.group(1, 2, 3)))
+              return core, match.group(4) is None, match.group(4) or ""
+          if version(sys.argv[2]) <= version(sys.argv[1]):
+              raise SystemExit(f"C# package version must increase: {sys.argv[1]} -> {sys.argv[2]}")
+          PY
+
+  release-eligibility:
+    name: Check release eligibility
+    needs: test
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    outputs:
+      publish: ${{ steps.version.outputs.publish }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - id: version
+        env:
+          BEFORE: ${{ github.event.before }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          current="$(sed -n 's|.*<Version>\(.*\)</Version>.*|\1|p' csharp/GreekPostalCodeDb/GreekPostalCodeDb.csproj)"
+          previous="$(git show "$BEFORE:csharp/GreekPostalCodeDb/GreekPostalCodeDb.csproj" 2>/dev/null | sed -n 's|.*<Version>\(.*\)</Version>.*|\1|p')"
+          if [ "$current" = "$previous" ]; then
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "Package version is unchanged ($current); skipping publish."
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+            echo "Package version changed: ${previous:-new package} -> $current."
+          fi
+
+  publish:
+    name: Publish to NuGet.org
+    needs: [test, release-eligibility]
+    if: needs.release-eligibility.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    environment: nuget.org
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet run --project csharp/GreekPostalCodeDb.Tests/GreekPostalCodeDb.Tests.csproj
+      - run: dotnet pack csharp/GreekPostalCodeDb/GreekPostalCodeDb.csproj --configuration Release --output artifacts
+      - name: Exchange GitHub OIDC identity for a short-lived NuGet API key
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: ${{ vars.NUGET_USER }}
+      - name: Publish only when this version is new
+        run: dotnet nuget push artifacts/*.nupkg --api-key '${{ steps.login.outputs.NUGET_API_KEY }}' --source https://api.nuget.org/v3/index.json --skip-duplicate

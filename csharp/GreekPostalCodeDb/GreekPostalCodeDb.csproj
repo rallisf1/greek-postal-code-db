@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageId>GreekPostalCodeDb</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>Greek Postal Code DB contributors</Authors>
+    <Description>Read-only Greek postal-code data backed by an embedded SQLite database.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/rallisf1/greek-postal-code-db</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/rallisf1/greek-postal-code-db</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>greece greek postcode postal-code sqlite</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.11" />
+    <EmbeddedResource Include="../../library.sqlite" LogicalName="GreekPostalCodeDb.library.sqlite" />
+    <None Include="../README.md" Pack="true" PackagePath="/" />
+    <None Include="../LICENSE" Pack="true" PackagePath="/" />
+  </ItemGroup>
+</Project>

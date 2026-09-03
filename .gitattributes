@@ -12,3 +12,4 @@
 /phpunit.xml.dist export-ignore
 /python export-ignore
 /rust export-ignore
+/csharp export-ignore

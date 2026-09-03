@@ -3,6 +3,8 @@
 **/vendor/
 **/dist/
 **/build/
+**/bin/
+**/obj/
 **/target/
 **/Cargo.lock
 **/__pycache__/
