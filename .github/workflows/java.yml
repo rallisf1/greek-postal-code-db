@@ -1,0 +1,110 @@
+name: Java Maven Central package
+
+on:
+  pull_request:
+    paths: [library.sqlite, java/**, .github/workflows/java.yml]
+  push:
+    branches: [main]
+    paths: [library.sqlite, java/**, .github/workflows/java.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test Java client
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - run: mvn --batch-mode --no-transfer-progress verify
+        working-directory: java
+      - name: Require a version bump for publishable changes
+        if: github.event_name == 'pull_request'
+        env:
+          BASE: origin/${{ github.base_ref }}
+        run: |
+          if git diff --quiet "$BASE...HEAD" -- library.sqlite java/; then exit 0; fi
+          base="$(git show "$BASE:java/pom.xml" | sed -n 's|.*<version>\([0-9][^<]*\)</version>.*|\1|p' | head -1)"
+          current="$(sed -n 's|.*<version>\([0-9][^<]*\)</version>.*|\1|p' java/pom.xml | head -1)"
+          python3 - "$base" "$current" <<'PY'
+          import re, sys
+          def version(value):
+              match = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?", value)
+              if not match:
+                  raise SystemExit(f"invalid SemVer version: {value}")
+              core = tuple(map(int, match.group(1, 2, 3)))
+              return core, match.group(4) is None, match.group(4) or ""
+          if version(sys.argv[2]) <= version(sys.argv[1]):
+              raise SystemExit(f"Java package version must increase: {sys.argv[1]} -> {sys.argv[2]}")
+          PY
+
+  release-eligibility:
+    name: Check release eligibility
+    needs: test
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    outputs:
+      publish: ${{ steps.version.outputs.publish }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - id: version
+        env:
+          BEFORE: ${{ github.event.before }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT" = "workflow_dispatch" ]; then echo "publish=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          current="$(sed -n 's|.*<version>\([0-9][^<]*\)</version>.*|\1|p' java/pom.xml | head -1)"
+          previous="$(git show "$BEFORE:java/pom.xml" 2>/dev/null | sed -n 's|.*<version>\([0-9][^<]*\)</version>.*|\1|p' | head -1)"
+          if [ "$current" = "$previous" ]; then
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "Package version is unchanged ($current); skipping publish."
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+            echo "Package version changed: ${previous:-new package} -> $current."
+          fi
+
+  publish:
+    name: Publish to Maven Central
+    needs: [test, release-eligibility]
+    if: needs.release-eligibility.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    environment: maven-central
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          server-id: central
+          server-username: MAVEN_CENTRAL_USERNAME
+          server-password: MAVEN_CENTRAL_PASSWORD
+          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE
+      - name: Skip an already-published version
+        id: central
+        working-directory: java
+        run: |
+          group="$(sed -n 's|.*<groupId>\(.*\)</groupId>.*|\1|p' pom.xml | head -1)"
+          artifact="$(sed -n 's|.*<artifactId>\(.*\)</artifactId>.*|\1|p' pom.xml | head -1)"
+          version="$(sed -n 's|.*<version>\([0-9][^<]*\)</version>.*|\1|p' pom.xml | head -1)"
+          found="$(curl --fail --silent --show-error --get https://search.maven.org/solrsearch/select --data-urlencode "q=g:$group AND a:$artifact AND v:$version" --data-urlencode rows=0 | python3 -c 'import json, sys; print(json.load(sys.stdin)["response"]["numFound"])')"
+          echo "publish=$([ "$found" = 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+      - name: Deploy signed release
+        if: steps.central.outputs.publish == 'true'
+        working-directory: java
+        env:
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+          MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+        run: mvn --batch-mode --no-transfer-progress deploy -Prelease -DskipTests
