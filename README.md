@@ -19,6 +19,8 @@ Language clients for the Greek Postal Code DB. Each package embeds the same read
 - [`rust`](./rust): Rust crate; use Cargo's Git `subdirectory = "rust"` support until crates.io publication.
 - [`csharp`](./csharp): .NET 10 client, packaged for NuGet as `GreekPostalCodeDb`.
 - [`java`](./java): Java 21 client, packaged for Maven Central as `io.github.rallisf1:greek-postal-code-db`.
+- [`dart`](./dart): native Dart client, published as `greek_postal_code_db`.
+- [`flutter`](./flutter): Flutter asset-bundle adapter, published as `greek_postal_code_db_flutter`.
 - [`models`](./models): private TypeScript types used internally; it is not published.
 - [`demo`](./demo): internal Cloudflare Pages/D1 demo application; it is not published.
 

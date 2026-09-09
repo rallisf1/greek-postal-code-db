@@ -1,0 +1,29 @@
+name: Publish Flutter adapter to pub.dev
+
+on:
+  push:
+    tags: ['dart-v[0-9]+.[0-9]+.[0-9]+']
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - uses: dart-lang/setup-dart@v1
+      - name: Verify tag and package version
+        working-directory: flutter
+        run: |
+          test "dart-v$(sed -n 's/^version: *//p' pubspec.yaml)" = "$GITHUB_REF_NAME"
+      - run: rm pubspec_overrides.yaml
+        working-directory: flutter
+      - run: flutter pub get
+        working-directory: flutter
+      - run: flutter pub publish --force
+        working-directory: flutter

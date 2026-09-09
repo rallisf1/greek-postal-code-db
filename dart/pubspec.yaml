@@ -1,0 +1,16 @@
+name: greek_postal_code_db
+description: Offline, read-only Greek postal-code data backed by an embedded SQLite database.
+version: 0.1.0
+repository: https://github.com/rallisf1/greek-postal-code-db/tree/main/dart
+homepage: https://github.com/rallisf1/greek-postal-code-db
+topics: [greece, postcode, postal-code, sqlite]
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+dependencies:
+  sqlite3: ^2.9.4
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.25.0
+flutter:
+  assets:
+    - lib/data/library.sqlite

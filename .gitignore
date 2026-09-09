@@ -6,6 +6,8 @@
 **/bin/
 **/obj/
 **/target/
+**/.dart_tool/
+**/pubspec.lock
 **/Cargo.lock
 **/__pycache__/
 **/*.egg-info/
@@ -23,6 +25,7 @@ demo/wrangler.toml
 !go/data/library.sqlite
 !python/src/greek_postal_code_db/data/library.sqlite
 !rust/data/library.sqlite
+!dart/lib/data/library.sqlite
 
 # Local configuration and logs
 .env

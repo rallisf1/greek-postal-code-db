@@ -1,0 +1,24 @@
+name: Publish Dart package to pub.dev
+
+on:
+  push:
+    tags: ['dart-v[0-9]+.[0-9]+.[0-9]+']
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+      - name: Verify tag and package version
+        working-directory: dart
+        run: |
+          test "dart-v$(sed -n 's/^version: *//p' pubspec.yaml)" = "$GITHUB_REF_NAME"
+      - run: dart pub get
+        working-directory: dart
+      - run: dart pub publish --force
+        working-directory: dart

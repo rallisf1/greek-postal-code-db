@@ -1,0 +1,3 @@
+dependency_overrides:
+  greek_postal_code_db:
+    path: ../dart

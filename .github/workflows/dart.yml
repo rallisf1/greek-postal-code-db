@@ -1,0 +1,55 @@
+name: Dart and Flutter packages
+
+on:
+  pull_request:
+    paths: [library.sqlite, dart/**, flutter/**, .github/workflows/dart.yml]
+  push:
+    branches: [main]
+    paths: [library.sqlite, dart/**, flutter/**, .github/workflows/dart.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: dart-lang/setup-dart@v1
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: dart pub get && dart format --output=none --set-exit-if-changed lib test && dart analyze --fatal-infos && dart test
+        working-directory: dart
+      - run: flutter pub get && dart format --output=none --set-exit-if-changed lib test && flutter analyze && flutter test
+        working-directory: flutter
+      - name: Require lockstep version bumps
+        if: github.event_name == 'pull_request'
+        env:
+          BASE: origin/${{ github.base_ref }}
+        run: |
+          if git diff --quiet "$BASE...HEAD" -- library.sqlite dart/ flutter/; then exit 0; fi
+          python3 - "$BASE" <<'PY'
+          import re, subprocess, sys
+          base = sys.argv[1]
+          def version(path, revision=None):
+              try:
+                  text = subprocess.check_output(['git', 'show', f'{revision}:{path}'], text=True) if revision else open(path).read()
+              except subprocess.CalledProcessError:
+                  return None
+              match = re.search(r'^version:\s*([^\s]+)', text, re.M)
+              if not match: raise SystemExit(f'missing version in {path}')
+              return match.group(1)
+          def semver(value):
+              match = re.fullmatch(r'(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?', value)
+              if not match: raise SystemExit(f'invalid SemVer: {value}')
+              return tuple(map(int, match.group(1, 2, 3))), match.group(4) is None, match.group(4) or ''
+          current = [version('dart/pubspec.yaml'), version('flutter/pubspec.yaml')]
+          previous = [version('dart/pubspec.yaml', base), version('flutter/pubspec.yaml', base)]
+          if current[0] != current[1]: raise SystemExit(f'package versions must match: {current[0]} != {current[1]}')
+          if any(value is None for value in previous): raise SystemExit(0)
+          if any(semver(now) <= semver(old) for now, old in zip(current, previous)):
+              raise SystemExit(f'both package versions must increase: {previous} -> {current}')
+          PY
