@@ -21,6 +21,7 @@ Language clients for the Greek Postal Code DB. Each package embeds the same read
 - [`java`](./java): Java 21 client, packaged for Maven Central as `io.github.rallisf1:greek-postal-code-db`.
 - [`dart`](./dart): native Dart client, published as `greek_postal_code_db`.
 - [`flutter`](./flutter): Flutter asset-bundle adapter, published as `greek_postal_code_db_flutter`.
+- [`swift`](./swift): native Swift Package Manager client for Linux and Apple platforms.
 - [`models`](./models): private TypeScript types used internally; it is not published.
 - [`demo`](./demo): internal Cloudflare Pages/D1 demo application; it is not published.
 

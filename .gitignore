@@ -7,6 +7,7 @@
 **/obj/
 **/target/
 **/.dart_tool/
+**/.build/
 **/pubspec.lock
 **/Cargo.lock
 **/__pycache__/
@@ -19,6 +20,7 @@
 **/.generated/
 demo/wrangler.toml
 **/*.tsbuildinfo
+**/pubspec_overrides.yaml
 
 # Staged package assets; the canonical asset is /library.sqlite.
 **/data/library.sqlite
