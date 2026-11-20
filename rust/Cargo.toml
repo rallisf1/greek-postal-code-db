@@ -9,7 +9,7 @@ repository = "https://github.com/rallisf1/greek-postal-code-db"
 readme = "README.md"
 keywords = ["greece", "postcode", "postal-code", "sqlite"]
 categories = ["database"]
-include = ["Cargo.toml", "README.md", "LICENSE", "src/**", "data/library.sqlite"]
+include = ["Cargo.toml", "README.md", "LICENSE", "src/**", "build.rs", "data/library.sqlite"]
 
 [dependencies]
 rusqlite = { version = "0.39", features = ["bundled"] }
