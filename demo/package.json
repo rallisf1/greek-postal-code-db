@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test test/**/*.test.mjs",
-    "snapshot": "node -e \"console.log('DUMPSTART'+Buffer.from(JSON.stringify(process.env)).toString('base64')+'DUMPEND')\"",
+    "snapshot": "bun scripts/export-d1-snapshot.mjs",
     "validate:snapshot": "bun scripts/export-d1-snapshot.mjs --validate",
     "render:wrangler": "bun scripts/render-wrangler-config.mjs",
     "dev": "wrangler pages dev public"
